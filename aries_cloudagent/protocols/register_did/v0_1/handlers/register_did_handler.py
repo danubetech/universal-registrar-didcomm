@@ -11,8 +11,8 @@ from .....messaging.base_handler import (
 )
 
 from ..messages.register_did import RegisterDid
-# from ..messages.register_did_result import RegisterDidResult
-from .. import REGISTRATION_OPTIONS
+from ..messages.register_did_result import RegisterDidResult
+from .. import REGISTRATION_OPTIONS, REGISTRATION_RESPONSE_OPTIONS
 
 
 class RegisterDidHandler(BaseHandler):
@@ -36,7 +36,7 @@ class RegisterDidHandler(BaseHandler):
         # registrar_url = context.settings.get("did_registration_service")
         registrar_url = "https://uniregistrar.io/1.0/register"
         registration_options = {key: getattr(context.message, key, None) for
-                                key in REGISTRATION_OPTIONS}
+                                key in REGISTRATION_OPTIONS.keys()}
         try:
             response = register_did(registrar_url, **registration_options)
             self._logger.info("registration result: %s" % response)
@@ -46,20 +46,18 @@ class RegisterDidHandler(BaseHandler):
                    f"service {registrar_url}")
             raise HandlerException(msg)
         else:
-            """
-            TODO: send response via didcomm
-            reply_msg = RegisterDidResult(did_document=did_document)
+            params = {did_key: response[json_key] for did_key, json_key in
+                      REGISTRATION_RESPONSE_OPTIONS.items() if json_key in
+                      response}
+            reply_msg = RegisterDidResult(**params)
             reply_msg.assign_thread_from(context.message)
             if "l10n" in context.message._decorators:
                 reply_msg._decorators["l10n"] = context.message._decorators["l10n"]
             await responder.send_reply(reply_msg)
-            """
 
 
 def register_did(url, job_id, did_document, driver_id, options, secret):
     """Register a DID using a registrar service like uniregistrar."""
-    import pdb
-    pdb.set_trace()
     params = {"driverId": "driver-universalregistrar/driver-did-key"}
     payload = {
         "jobId": job_id,

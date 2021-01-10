@@ -1,4 +1,4 @@
-"""DID resolution routes."""
+"""DID registration routes."""
 
 from aiohttp import web
 from aiohttp_apispec import docs, request_schema
@@ -54,8 +54,8 @@ async def connections_register_did(request: web.BaseRequest):
     if not connection.is_ready:
         raise web.HTTPBadRequest(reason=f"Connection {connection_id} not ready")
 
-    registration_options = {key: params[key] for key in REGISTRATION_OPTIONS 
-                            if key in params}
+    registration_options = {key: params[key] for key in
+                            REGISTRATION_OPTIONS.keys() if key in params}
     msg = RegisterDid(**registration_options)
     await outbound_handler(msg, connection_id=connection_id)
 
